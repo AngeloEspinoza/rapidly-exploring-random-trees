@@ -17,18 +17,81 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 BROWN = (189, 154, 122)
 
-
-NUM_NODES = 5000 #  Max number of nodes/vertices
-EPSILON = 10.0 # Step size
+# RRT parameters
+MAX_NODES = 5000 #  Max number of nodes/vertices
+EPSILON = 7.0 # Step size
 
 def draw_window():
 	"""Draw the window all white."""
 	WINDOW.fill(WHITE)
 
+def draw_obstacles():
+	"""Draw obstacles on the window.
+
+	Parameters
+	----------
+	None
+
+	Returns
+	-------
+	list
+		All the rectangle obstacles.
+	"""
+	obstacles = []
+	obstacle1 = pygame.Rect((WIDTH//2 + (90), HEIGHT//2 - (45), 90, 90))
+	obstacle2 = pygame.Rect((WIDTH//2 - (180), HEIGHT//2 - (45), 90, 90))
+	pygame.draw.rect(surface=WINDOW, color=RED, rect=obstacle1)
+	pygame.draw.rect(surface=WINDOW, color=RED, rect=obstacle2)
+	pygame.draw.rect(surface=WINDOW, color=BLACK, rect=obstacle1, width=2)
+	pygame.draw.rect(surface=WINDOW, color=BLACK, rect=obstacle2, width=2)
+
+	obstacles.append(obstacle1)
+	obstacles.append(obstacle2)
+
+	return obstacles
+
+def is_free(point, obstacles, tree):
+	"""Checks whether a node is colliding with an obstacle or not.
+
+	When dealing with obstacles it is necessary to check 
+	for the collision with them from the generated node.
+
+	Parameters
+	----------
+	point : tuple
+		Point to be checked.
+	obstacles : pygame.Rect
+		Rectangle obstacle.
+	tree : list
+		Tree containing all the coordinate nodes.
+
+	Returns
+	-------
+	bool
+	"""
+	for obstacle in obstacles:
+		if obstacle.collidepoint(point):
+			tree.remove(point)
+			return False
+
+	return True
+
 def generate_random_node():
-	# q_rand(x_rand, y_rand)
+	"""Generates a random node on the screen.
+
+	The x and y coordinate is generated given an uniform
+	distribution of the size of the screen width and height.
+
+	Parameters
+	----------
+	None
+
+	Returns
+	-------
+	tuple
+		Coordinates of the random node. 
+	"""
 	x, y = random.uniform(0, WIDTH), random.uniform(0, HEIGHT)
-	# pygame.draw.circle(surface=WINDOW, color=GREEN, center=(x, y), radius=3)
 
 	return x, y
 
@@ -94,7 +157,8 @@ def new_state(x_rand, x_near):
 	Returns
 	-------
 	tuple
-		New node generated between the nearest and random nodes.	
+		Coordinate of the new node generated between the nearest
+		and random nodes.	
 	"""
 	if euclidean_distance(x_near, x_rand) < EPSILON:
 		# Keep that shortest distance from x_near to x_rand
@@ -106,16 +170,17 @@ def new_state(x_rand, x_near):
 
 		return x_new
 
-
 def main():
 	clock = pygame.time.Clock()
 	run = True
-	x_init = WIDTH//2, HEIGHT//2
 	tree = [] # Tree containing all the nodes/vertices
-	tree.append(x_init) # Append initial state
+	x_init = WINDOW.get_rect().center # Initial node
+	tree.append(x_init) # Append initial node
 	draw_window()
+	obstacles = draw_obstacles()		
+
 	k = 0
-	while run and k < NUM_NODES:
+	while run and k < MAX_NODES:
 		# Make sure the loop runs at 60 FPS
 		clock.tick(FPS)  
 		for event in pygame.event.get():
@@ -126,10 +191,14 @@ def main():
 		x_near = nearest_neighbor(tree, x_rand) # Nearest neighbor to the random node
 		x_new = new_state(x_rand, x_near) # New node
 		tree.append(x_new)
-
-		pygame.draw.circle(surface=WINDOW, color=BLUE, center=x_init, radius=3)
-		pygame.draw.circle(surface=WINDOW, color=BROWN, center=x_new, radius=3)
-		pygame.draw.line(surface=WINDOW, color=BLACK, start_pos=x_near, end_pos=x_new)
+		collision_free = is_free(point=x_new, obstacles=obstacles, tree=tree)
+		
+		# Draw points and lines only if it is a free path
+		if collision_free:
+			pygame.draw.circle(surface=WINDOW, color=BLUE, center=x_init, radius=3)
+			# pygame.draw.circle(surface=WINDOW, color=GREEN, center=x_rand, radius=3)
+			# pygame.draw.circle(surface=WINDOW, color=BROWN, center=x_new, radius=2)
+			pygame.draw.line(surface=WINDOW, color=BLACK, start_pos=x_near, end_pos=x_new)
 		pygame.display.update()
 		
 		k += 1
