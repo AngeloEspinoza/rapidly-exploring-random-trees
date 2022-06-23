@@ -2,6 +2,16 @@ import pygame
 import random
 import math
 import numpy as np
+import argparse
+
+# Command line arguments
+parser = argparse.ArgumentParser(description='Implements the RRT algorithm.')
+parser.add_argument('-o', '--obstacles', type=bool, action=argparse.BooleanOptionalAction, metavar='', required=False, help='Obstacles on the map')
+parser.add_argument('-n', '--nodes', type=int, metavar='', required=False, help='Maximum number of nodes')
+parser.add_argument('-e', '--epsilon', type=float, metavar='', required=False, help='Step size')
+parser.add_argument('-srn', '--show_random_nodes', type=bool, action=argparse.BooleanOptionalAction, metavar='', required=False, help='Show random nodes on screen')
+parser.add_argument('-snn', '--show_new_nodes', type=bool, action=argparse.BooleanOptionalAction, metavar='', required=False, help='Show new nodes on screen')
+args = parser.parse_args()
 
 # Constants
 WIDTH, HEIGHT = 640, 480
@@ -18,8 +28,15 @@ BLUE = (0, 0, 255)
 BROWN = (189, 154, 122)
 
 # RRT parameters
-MAX_NODES = 5000 #  Max number of nodes/vertices
-EPSILON = 7.0 # Step size
+if not args.nodes == None:
+	MAX_NODES = args.nodes
+else:
+	MAX_NODES = 5000 #  Default maximum number of nodes/vertices
+
+if not args.epsilon == None:
+	EPSILON = args.epsilon
+else:
+	EPSILON = 7.0 # Default step size
 
 def draw_window():
 	"""Draw the window all white."""
@@ -38,8 +55,8 @@ def draw_obstacles():
 		All the rectangle obstacles.
 	"""
 	obstacles = []
-	obstacle1 = pygame.Rect((WIDTH//2 + (90), HEIGHT//2 - (45), 90, 90))
-	obstacle2 = pygame.Rect((WIDTH//2 - (180), HEIGHT//2 - (45), 90, 90))
+	obstacle1 = pygame.Rect((WIDTH//2 + 90, HEIGHT//2 - 45, 90, 90))
+	obstacle2 = pygame.Rect((WIDTH//2 - 180, HEIGHT//2 - 45, 90, 90))
 	pygame.draw.rect(surface=WINDOW, color=RED, rect=obstacle1)
 	pygame.draw.rect(surface=WINDOW, color=RED, rect=obstacle2)
 	pygame.draw.rect(surface=WINDOW, color=BLACK, rect=obstacle1, width=2)
@@ -170,14 +187,15 @@ def new_state(x_rand, x_near):
 
 		return x_new
 
-def main():
+def main(has_obstacles, show_random_nodes, show_new_nodes):
 	clock = pygame.time.Clock()
 	run = True
 	tree = [] # Tree containing all the nodes/vertices
 	x_init = WINDOW.get_rect().center # Initial node
 	tree.append(x_init) # Append initial node
 	draw_window()
-	obstacles = draw_obstacles()		
+	if has_obstacles:
+		obstacles = draw_obstacles()	
 
 	k = 0
 	while run and k < MAX_NODES:
@@ -191,14 +209,27 @@ def main():
 		x_near = nearest_neighbor(tree, x_rand) # Nearest neighbor to the random node
 		x_new = new_state(x_rand, x_near) # New node
 		tree.append(x_new)
-		collision_free = is_free(point=x_new, obstacles=obstacles, tree=tree)
-		
-		# Draw points and lines only if it is a free path
-		if collision_free:
-			pygame.draw.circle(surface=WINDOW, color=BLUE, center=x_init, radius=3)
-			# pygame.draw.circle(surface=WINDOW, color=GREEN, center=x_rand, radius=3)
-			# pygame.draw.circle(surface=WINDOW, color=BROWN, center=x_new, radius=2)
+	
+		# Draw points and lines to visualization
+		pygame.draw.circle(surface=WINDOW, color=BLUE, center=x_init, radius=3)
+
+		if has_obstacles:
+			collision_free = is_free(point=x_new, obstacles=obstacles, tree=tree) # Check collision
+			if collision_free:
+				if show_random_nodes:
+					pygame.draw.circle(surface=WINDOW, color=GREEN, center=x_rand, radius=3)
+				if show_new_nodes:
+					pygame.draw.circle(surface=WINDOW, color=BROWN, center=x_new, radius=2)
+
+				pygame.draw.line(surface=WINDOW, color=BLACK, start_pos=x_near, end_pos=x_new)
+		else:
+			if show_random_nodes:
+				pygame.draw.circle(surface=WINDOW, color=GREEN, center=x_rand, radius=3)
+			if show_new_nodes:
+				pygame.draw.circle(surface=WINDOW, color=BROWN, center=x_new, radius=2)
+
 			pygame.draw.line(surface=WINDOW, color=BLACK, start_pos=x_near, end_pos=x_new)
+
 		pygame.display.update()
 		
 		k += 1
@@ -206,4 +237,4 @@ def main():
 	pygame.quit()
 
 if __name__ == '__main__':
-	main()
+	main(has_obstacles=args.obstacles, show_random_nodes=args.show_random_nodes, show_new_nodes=args.show_new_nodes)
