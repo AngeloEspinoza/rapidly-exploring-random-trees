@@ -17,7 +17,7 @@ args = parser.parse_args()
 WIDTH, HEIGHT = 640, 480
 WINDOW = pygame.display.set_mode(size=(WIDTH, HEIGHT))
 pygame.display.set_caption('RRT')
-FPS = 60
+FPS = 0.1
 
 # Colors 
 WHITE = (255, 255, 255)
@@ -55,8 +55,8 @@ def draw_obstacles():
 		All the rectangle obstacles.
 	"""
 	obstacles = []
-	obstacle1 = pygame.Rect((WIDTH//2 + 90, HEIGHT//2 - 45, 90, 90))
-	obstacle2 = pygame.Rect((WIDTH//2 - 180, HEIGHT//2 - 45, 90, 90))
+	obstacle1 = pygame.Rect((WIDTH//2 + 10, HEIGHT//2 - 45, 90, 90))
+	obstacle2 = pygame.Rect((WIDTH//2 - 100, HEIGHT//2 - 45, 90, 90))
 	pygame.draw.rect(surface=WINDOW, color=RED, rect=obstacle1)
 	pygame.draw.rect(surface=WINDOW, color=RED, rect=obstacle2)
 	pygame.draw.rect(surface=WINDOW, color=BLACK, rect=obstacle1, width=2)
@@ -133,7 +133,7 @@ def nearest_neighbor(tree, x_rand):
 	"""Returns the index of the nearest neighbor.
 	
 	The nearest neighbor from all the nodes in the tree
-	to the random generated node.
+	to the randomly generated node.
 
 	Parameters
 	----------
@@ -147,12 +147,16 @@ def nearest_neighbor(tree, x_rand):
 	tuple
 		Nearest node to the random node generated.	
 	"""
+	global min_distance
+
 	distances = []
 	for state in tree:
 		distance = euclidean_distance(state, x_rand)
 		distances.append(distance)
 
-	x_near = tree[np.argmin(distances)]
+	# Index of the minimum distance to the generated random node
+	min_distance = np.argmin(distances) 
+	x_near = tree[min_distance]
 
 	return x_near
 
@@ -187,17 +191,48 @@ def new_state(x_rand, x_near):
 
 		return x_new
 
+def generate_parents(values, parent):
+	"""Generates a list of parents and their children.
+	
+	Sets up a list of the parents and its corresponding
+	children of the tree given a value and the value 
+	of the nearest neighbor.
+
+	Parameters
+	----------
+	values : list
+		Collection of values of the assigned x_new node.
+	parent : list
+		Collection of parents to be fulfilled given its
+		correspondant x_near value.
+
+	Returns
+	-------
+	parent : list
+		Ordered collection of the parents.
+	"""
+	parent_value = values[min_distance] # Value neares node
+	parent_index = len(parent) # Used to be the index of the parent list
+	parent.insert(parent_index, parent_value)
+
+	return parent
+
+
 def main(has_obstacles, show_random_nodes, show_new_nodes):
 	clock = pygame.time.Clock()
 	run = True
-	tree = [] # Tree containing all the nodes/vertices
+	tree = [] # Tree list containing all the nodes/vertices
+	parent = []  # Parent list of each each node/vertex
+	values = [] # Values list of each node/vertex
 	x_init = WINDOW.get_rect().center # Initial node
 	tree.append(x_init) # Append initial node
+	parent.append(0) # Append initial parent
 	draw_window()
 	if has_obstacles:
 		obstacles = draw_obstacles()	
 
 	k = 0
+	node_value = 0
 	while run and k < MAX_NODES:
 		# Make sure the loop runs at 60 FPS
 		clock.tick(FPS)  
@@ -205,30 +240,41 @@ def main(has_obstacles, show_random_nodes, show_new_nodes):
 			if event.type == pygame.QUIT:
 				run = False
 
+
 		x_rand = generate_random_node() # Random node 
 		x_near = nearest_neighbor(tree, x_rand) # Nearest neighbor to the random node
 		x_new = new_state(x_rand, x_near) # New node
 		tree.append(x_new)
 	
-		# Draw points and lines to visualization
+		# Draw points and lines to the visualization
 		pygame.draw.circle(surface=WINDOW, color=BLUE, center=x_init, radius=3)
 
 		if has_obstacles:
 			collision_free = is_free(point=x_new, obstacles=obstacles, tree=tree) # Check collision
 			if collision_free:
+				# Append current node value and place it in the parent list 
+				values.append(node_value)
+				parent = generate_parents(values, parent)
+
 				if show_random_nodes:
 					pygame.draw.circle(surface=WINDOW, color=GREEN, center=x_rand, radius=3)
 				if show_new_nodes:
 					pygame.draw.circle(surface=WINDOW, color=BROWN, center=x_new, radius=2)
 
 				pygame.draw.line(surface=WINDOW, color=BLACK, start_pos=x_near, end_pos=x_new)
+				node_value += 1 # Increment value for the next randomly generated node 
 		else:
+			# Append current node value and place it in the parent list 
+			values.append(node_value)
+			parent = generate_parents(values, parent)
+
 			if show_random_nodes:
 				pygame.draw.circle(surface=WINDOW, color=GREEN, center=x_rand, radius=3)
 			if show_new_nodes:
 				pygame.draw.circle(surface=WINDOW, color=BROWN, center=x_new, radius=2)
 
 			pygame.draw.line(surface=WINDOW, color=BLACK, start_pos=x_near, end_pos=x_new)
+			node_value += 1 # Increment value for the next randomly generated node 
 
 		pygame.display.update()
 		
