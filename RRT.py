@@ -3,12 +3,16 @@ import random
 import math
 import numpy as np
 import argparse
+import time
+import sys 
 
 # Command line arguments
 parser = argparse.ArgumentParser(description='Implements the RRT algorithm.')
 parser.add_argument('-o', '--obstacles', type=bool, action=argparse.BooleanOptionalAction, metavar='', required=False, help='Obstacles on the map')
 parser.add_argument('-n', '--nodes', type=int, metavar='', required=False, help='Maximum number of nodes')
 parser.add_argument('-e', '--epsilon', type=float, metavar='', required=False, help='Step size')
+parser.add_argument('-init', '--x_init', nargs='+', type=int, metavar='', required=False, help='Initial node position in x and y respectively')
+parser.add_argument('-goal', '--x_goal', nargs='+', type=int, metavar='', required=False, help='Goal node position in x and y respectively')
 parser.add_argument('-srn', '--show_random_nodes', type=bool, action=argparse.BooleanOptionalAction, metavar='', required=False, help='Show random nodes on screen')
 parser.add_argument('-snn', '--show_new_nodes', type=bool, action=argparse.BooleanOptionalAction, metavar='', required=False, help='Show new nodes on screen')
 args = parser.parse_args()
@@ -17,7 +21,7 @@ args = parser.parse_args()
 WIDTH, HEIGHT = 640, 480
 WINDOW = pygame.display.set_mode(size=(WIDTH, HEIGHT))
 pygame.display.set_caption('RRT')
-FPS = 0.1
+FPS = 60
 
 # Colors 
 WHITE = (255, 255, 255)
@@ -28,15 +32,8 @@ BLUE = (0, 0, 255)
 BROWN = (189, 154, 122)
 
 # RRT parameters
-if not args.nodes == None:
-	MAX_NODES = args.nodes
-else:
-	MAX_NODES = 5000 #  Default maximum number of nodes/vertices
-
-if not args.epsilon == None:
-	EPSILON = args.epsilon
-else:
-	EPSILON = 7.0 # Default step size
+MAX_NODES = args.nodes if not args.nodes is None else 5000 # Default maximum number of nodes/vertices
+EPSILON = args.epsilon if not args.epsilon is None else 7.0 # Default step size
 
 def draw_window():
 	"""Draw the window all white."""
@@ -55,10 +52,12 @@ def draw_obstacles():
 		All the rectangle obstacles.
 	"""
 	obstacles = []
-	obstacle1 = pygame.Rect((WIDTH//2 + 10, HEIGHT//2 - 45, 90, 90))
-	obstacle2 = pygame.Rect((WIDTH//2 - 100, HEIGHT//2 - 45, 90, 90))
+	obstacle1 = pygame.Rect((WIDTH//2 + 90, HEIGHT//2 - 45, 90, 90))
+	obstacle2 = pygame.Rect((WIDTH//2 - 180, HEIGHT//2 - 45, 90, 90))
 	pygame.draw.rect(surface=WINDOW, color=RED, rect=obstacle1)
 	pygame.draw.rect(surface=WINDOW, color=RED, rect=obstacle2)
+
+	# Just decoration borders in black
 	pygame.draw.rect(surface=WINDOW, color=BLACK, rect=obstacle1, width=2)
 	pygame.draw.rect(surface=WINDOW, color=BLACK, rect=obstacle2, width=2)
 
@@ -160,7 +159,7 @@ def nearest_neighbor(tree, x_rand):
 
 	return x_near
 
-def new_state(x_rand, x_near):
+def new_state(x_rand, x_near, x_goal):
 	"""Advances a small step (EPSILON) towards the random node.
 	
 	Takes small step (EPSILON) from the nearest node to the
@@ -174,6 +173,8 @@ def new_state(x_rand, x_near):
 		Coordinate of the random node generated.
 	x_near : tuple 
 		Coordinate of the nearest neighbor node.
+	x_goal : tuple
+		Coordinate of the goal node.
 
 	Returns
 	-------
@@ -181,13 +182,21 @@ def new_state(x_rand, x_near):
 		Coordinate of the new node generated between the nearest
 		and random nodes.	
 	"""
+	global is_goal_reached
+
 	if euclidean_distance(x_near, x_rand) < EPSILON:
+		if abs(x_rand[0] - x_goal[0]) < EPSILON and abs(x_rand[1] - x_goal[1]) < EPSILON: # Check if goal is reached
+			is_goal_reached = True
+
 		# Keep that shortest distance from x_near to x_rand
 		return x_rand
 	else:
 		px, py = x_rand[0] - x_near[0], x_rand[1] - x_near[1]
 		theta = math.atan2(py, px)
-		x_new = x_near[0] + EPSILON*math.cos(theta), x_near[1] + EPSILON*math.sin(theta)
+		x_new = x_near[0] + EPSILON*math.cos(theta), x_near[1] + EPSILON*math.sin(theta) 
+
+		if abs(x_new[0] - x_goal[0]) < EPSILON and abs(x_new[1] - x_goal[1]) < EPSILON: # Check if goal is reached
+			is_goal_reached = True
 
 		return x_new
 
@@ -211,20 +220,29 @@ def generate_parents(values, parent):
 	parent : list
 		Ordered collection of the parents.
 	"""
-	parent_value = values[min_distance] # Value neares node
+	parent_value = values[min_distance] # Value nearest node
 	parent_index = len(parent) # Used to be the index of the parent list
 	parent.insert(parent_index, parent_value)
+
+	if is_goal_reached:
+		# Insert in the very last index the last value recorded plus one
+		parent.insert(parent_index+1, values[-1]+1)
 
 	return parent
 
 
 def main(has_obstacles, show_random_nodes, show_new_nodes):
+	global is_goal_reached
+
 	clock = pygame.time.Clock()
 	run = True
+	is_goal_reached = False
+	is_simulation_finished = False
 	tree = [] # Tree list containing all the nodes/vertices
-	parent = []  # Parent list of each each node/vertex
+	parent = [] # Parent list of each each node/vertex
 	values = [] # Values list of each node/vertex
-	x_init = WINDOW.get_rect().center # Initial node
+	x_init = args.x_init if not args.x_init is None else WINDOW.get_rect().center # Initial node
+	x_goal = args.x_goal if not args.x_goal is None else (540, 380) # Goal node
 	tree.append(x_init) # Append initial node
 	parent.append(0) # Append initial parent
 	draw_window()
@@ -243,13 +261,14 @@ def main(has_obstacles, show_random_nodes, show_new_nodes):
 
 		x_rand = generate_random_node() # Random node 
 		x_near = nearest_neighbor(tree, x_rand) # Nearest neighbor to the random node
-		x_new = new_state(x_rand, x_near) # New node
+		x_new = new_state(x_rand, x_near, x_goal) # New node
 		tree.append(x_new)
 	
 		# Draw points and lines to the visualization
 		pygame.draw.circle(surface=WINDOW, color=BLUE, center=x_init, radius=3)
+		pygame.draw.circle(surface=WINDOW, color=RED, center=x_goal, radius=3)
 
-		if has_obstacles:
+		if has_obstacles and not is_simulation_finished:
 			collision_free = is_free(point=x_new, obstacles=obstacles, tree=tree) # Check collision
 			if collision_free:
 				# Append current node value and place it in the parent list 
@@ -262,8 +281,12 @@ def main(has_obstacles, show_random_nodes, show_new_nodes):
 					pygame.draw.circle(surface=WINDOW, color=BROWN, center=x_new, radius=2)
 
 				pygame.draw.line(surface=WINDOW, color=BLACK, start_pos=x_near, end_pos=x_new)
-				node_value += 1 # Increment value for the next randomly generated node 
-		else:
+				node_value += 1 # Increment the value for the next randomly generated node
+
+				if is_goal_reached:
+					pygame.draw.line(surface=WINDOW, color=BLACK, start_pos=x_new, end_pos=x_goal)
+					is_simulation_finished = True
+		elif not is_simulation_finished:
 			# Append current node value and place it in the parent list 
 			values.append(node_value)
 			parent = generate_parents(values, parent)
@@ -276,11 +299,15 @@ def main(has_obstacles, show_random_nodes, show_new_nodes):
 			pygame.draw.line(surface=WINDOW, color=BLACK, start_pos=x_near, end_pos=x_new)
 			node_value += 1 # Increment value for the next randomly generated node 
 
+			if is_goal_reached:
+				pygame.draw.line(surface=WINDOW, color=BLACK, start_pos=x_new, end_pos=x_goal)
+				is_simulation_finished = True
+
 		pygame.display.update()
-		
 		k += 1
 
 	pygame.quit()
+	sys.exit()
 
 if __name__ == '__main__':
 	main(has_obstacles=args.obstacles, show_random_nodes=args.show_random_nodes, show_new_nodes=args.show_new_nodes)
