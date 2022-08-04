@@ -18,26 +18,26 @@ class Graph():
 	"""
 
 	def __init__(self, start, goal, map_dimensions, epsilon):
-			self.x_init = start
-			self.x_goal = goal
+		self.x_init = start
+		self.x_goal = goal
 
-			self.WIDTH, self.HEIGHT = map_dimensions
-			self.MAX_NODES = 100
-			self.EPSILON = epsilon
+		self.WIDTH, self.HEIGHT = map_dimensions
+		self.MAX_NODES = 100
+		self.EPSILON = epsilon
 
-			self.obstacles = None
-			self.is_goal_reached = False
+		self.obstacles = None
+		self.is_goal_reached = False
 
-			# Colors 
-			self.WHITE = (255, 255, 255)
-			self.BLACK = (0, 0, 0)
-			self.RED = (255, 0, 0)
-			self.GREEN = (0, 255, 0)
-			self.BLUE = (0, 0, 255)
-			self.BROWN = (189, 154, 122)
-			self.YELLOW = (255, 255, 0)
-			self.TURQUOISE = (64, 224, 208)
-			self.FUCSIA = (255, 0, 255)
+		# Colors 
+		self.WHITE = (255, 255, 255)
+		self.BLACK = (0, 0, 0)
+		self.RED = (255, 0, 0)
+		self.GREEN = (0, 255, 0)
+		self.BLUE = (0, 0, 255)
+		self.BROWN = (189, 154, 122)
+		self.YELLOW = (255, 255, 0)
+		self.TURQUOISE = (64, 224, 208)
+		self.FUCSIA = (255, 0, 255)
 
 	def is_free(self, point, obstacles, tree):
 		"""Checks whether a node is colliding with an obstacle or not.
