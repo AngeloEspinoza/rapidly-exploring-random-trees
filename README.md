@@ -1,4 +1,4 @@
-# Rapidly-exploring Random Tree
+# Rapidly-exploring Random Trees
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/40195016/182943757-d39d012b-6f05-41da-a3be-b8590cf1335d.gif" />
