@@ -6,7 +6,7 @@
 
 ## Description
 A 2D simulation in the framework Pygame of the paper [Rapidly-exploring random trees: A new tool for path planning](https://www.cs.csustan.edu/~xliang/Courses/CS4710-21S/Papers/06%20RRT.pdf).
-The environment has 2 non-convex obstacles that can be used or not. It shows different elements of the tree while building it, like the $x_{new}$ or $x_{rand}$ nodes. Also,
+The environment has 2 non-convex obstacles that can be used or not. It shows different elements of the tree while building it, like the $\mathbf{x_{\mathit{new}}}$ or $\mathbf{x_{\mathit{rand}}}$ nodes. Also,
 the $\varepsilon$ and the maximum allowed nodes variables and be adjusted. 
 
 ## Usage
@@ -30,11 +30,11 @@ options:
 ```
 
 ## Examples
-Generate obstacles in the map and show the random nodes $x_{rand}$ 
+Generate obstacles in the map and show the random nodes $\mathbf{x}_{rand}$ 
 
 ```python3 RRT.py --obstacles --show_random_nodes```
 
-No obstacles, show the new nodes $x_{new}$
+No obstacles, show the new nodes $\mathbf{x}_{new}$
 
 ```python3 RRT.py --no-obstacles --show_new_nodes```
 
