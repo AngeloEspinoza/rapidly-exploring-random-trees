@@ -25,12 +25,12 @@ args = parser.parse_args()
 MAP_DIMENSIONS = 640, 480
 
 # RRT parameters
-MAX_NODES = args.nodes if not args.nodes is None else 5000 # Maximum number of nodes/vertices
-EPSILON = args.epsilon if not args.epsilon is None else 7.0 # Step size
+MAX_NODES = args.nodes if args.nodes is not None else 5000 # Maximum number of nodes/vertices
+EPSILON = args.epsilon if args.epsilon is not None else 7.0 # Step size
 
 # Initial and final position of the robot
-x_init = tuple(args.x_init)if not args.x_init is None else (50, 50) # Initial node
-x_goal = tuple(args.x_goal) if not args.x_goal is None else (540, 380) # Goal node
+x_init = tuple(args.x_init)if args.x_init is not None else (50, 50) # Initial node
+x_goal = tuple(args.x_goal) if args.x_goal is not None else (540, 380) # Goal node
 
 # Instantiating the environment and the graph
 environment_ = environment.Environment(map_dimensions=MAP_DIMENSIONS)
