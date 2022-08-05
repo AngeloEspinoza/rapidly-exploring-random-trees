@@ -11,6 +11,9 @@ the $\varepsilon$ and the maximum allowed nodes variables and be adjusted.
 
 ## Usage
 ```
+usage: RRT.py [-h] [-o | --obstacles | --no-obstacles] [-n] [-e] [-init  [...]] [-goal  [...]]
+              [-srn | --show_random_nodes | --no-show_random_nodes] [-snn | --show_new_nodes | --no-show_new_nodes]
+
 Implements the RRT algorithm for path planning.
 
 options:
