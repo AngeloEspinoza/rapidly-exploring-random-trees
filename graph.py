@@ -65,7 +65,7 @@ class Graph():
 
 		return True
 
-	def generate_random_node(self, ):
+	def generate_random_node(self):
 		"""Generates a random node on the screen.
 
 		The x and y coordinate is generated given an uniform
@@ -119,7 +119,6 @@ class Graph():
 		tuple
 			Nearest node to the random node generated.	
 		"""
-
 		distances = []
 
 		for state in tree:
@@ -206,10 +205,10 @@ class Graph():
 		pygame.draw.circle(surface=map_, color=self.GREEN, 
 			center=self.x_rand, radius=3)
 
-	def draw_new_node(self, map_):
+	def draw_new_node(self, map_, n):
 		"""Draws the x_near node."""
-		pygame.draw.circle(surface=WINDOW, color=self.BROWN,
-			center=x_new, radius=2)
+		pygame.draw.circle(surface=map_, color=self.BROWN,
+			center=n, radius=2)
 
 	def draw_initial_node(self, map_):
 		"""Draws the x_init node."""

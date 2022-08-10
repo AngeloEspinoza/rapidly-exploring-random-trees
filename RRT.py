@@ -5,7 +5,7 @@ import argparse
 import sys
 
 # Command line arguments
-parser = argparse.ArgumentParser(description='Implements the RRT algorithm.')
+parser = argparse.ArgumentParser(description='Implements the RRT algorithm for path planning.')
 parser.add_argument('-o', '--obstacles', type=bool, action=argparse.BooleanOptionalAction,
 	metavar='', required=False, help='Obstacles on the map')
 parser.add_argument('-n', '--nodes', type=int, metavar='', required=False,
@@ -19,6 +19,8 @@ parser.add_argument('-srn', '--show_random_nodes', type=bool, action=argparse.Bo
 	metavar='', required=False, help='Show random nodes on screen')
 parser.add_argument('-snn', '--show_new_nodes', type=bool, action=argparse.BooleanOptionalAction,
 	metavar='', required=False, help='Show new nodes on screen')
+parser.add_argument('-bp', '--bias_percentage', type=int, metavar='', required=False,
+	help='Amount of bias the RRT from 1 to 100')
 args = parser.parse_args()
 
 # Constants
@@ -29,7 +31,7 @@ MAX_NODES = args.nodes if args.nodes is not None else 5000 # Maximum number of n
 EPSILON = args.epsilon if args.epsilon is not None else 7.0 # Step size
 
 # Initial and final position of the robot
-x_init = tuple(args.x_init)if args.x_init is not None else (50, 50) # Initial node
+x_init = tuple(args.x_init) if args.x_init is not None else (50, 50) # Initial node
 x_goal = tuple(args.x_goal) if args.x_goal is not None else (540, 380) # Goal node
 
 # Instantiating the environment and the graph
@@ -52,6 +54,8 @@ def main():
 	k = 0
 	node_value = 0
 	iteration = 0
+	bias_percentage = 11 - args.bias_percentage//10
+	print(bias_percentage)
 	
 	while run and k < MAX_NODES:
 		# Make sure the loop runs at 60 FPS
@@ -86,7 +90,7 @@ def main():
 				if args.show_random_nodes:
 					graph_.draw_random_node(map_=environment_.map)		
 				if args.show_new_nodes:
-					graph_.draw_new_node(map_=environment_.map)
+					graph_.draw_new_node(map_=environment_.map, n=x_new)
 
 				graph_.draw_local_planner(p1=x_near, p2=x_new, map_=environment_.map)
 
