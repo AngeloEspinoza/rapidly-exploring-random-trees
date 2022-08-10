@@ -55,7 +55,6 @@ def main():
 	node_value = 0
 	iteration = 0
 	bias_percentage = 11 - args.bias_percentage//10
-	print(bias_percentage)
 	
 	while run and k < MAX_NODES:
 		# Make sure the loop runs at 60 FPS
