@@ -19,7 +19,7 @@ parser.add_argument('-srn', '--show_random_nodes', type=bool, action=argparse.Bo
 	metavar='', required=False, help='Show random nodes on screen')
 parser.add_argument('-snn', '--show_new_nodes', type=bool, action=argparse.BooleanOptionalAction,
 	metavar='', required=False, help='Show new nodes on screen')
-parser.add_argument('-bp', '--bias_percentage', type=int, metavar='', required=False,
+parser.add_argument('-bp', '--bias_percentage', type=int, metavar='', required=False, default=30,
 	help='Amount of bias the RRT from 1 to 100')
 args = parser.parse_args()
 
