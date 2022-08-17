@@ -92,15 +92,20 @@ def main():
 					graph_.draw_new_node(map_=environment_.map, n=x_new)
 
 				graph_.draw_local_planner(p1=x_near, p2=x_new, map_=environment_.map)
-
+				graph_.number_of_nodes = len(tree)
 				node_value += 1 # Increment the value for the next randomly generated node
 
 				if graph_.is_goal_reached:
 					graph_.draw_local_planner(p1=x_new, p2=x_goal, map_=environment_.map)
 					is_simulation_finished = True
+					graph_.parent = parent
+					graph_.tree = tree
+					graph_.path_to_goal()
+					graph_.get_path_coordinates()
+					graph_.draw_path_to_goal(map_=environment_.map)
 
+				k += 1 
 		pygame.display.update()
-		k += 1
 
 	pygame.quit()
 	sys.exit()

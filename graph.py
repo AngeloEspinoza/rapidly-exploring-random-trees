@@ -157,6 +157,7 @@ class Graph():
 		if self.euclidean_distance(x_near, x_rand) < self.EPSILON:
 			if abs(x_rand[0] - x_goal[0]) < self.EPSILON and abs(x_rand[1] - x_goal[1]) < self.EPSILON: # Check if goal is reached
 				self.is_goal_reached = True
+				self.goal_configuration = self.number_of_nodes
 
 			# Keep that shortest distance from x_near to x_rand
 			return x_rand
@@ -167,6 +168,7 @@ class Graph():
 
 			if abs(x_new[0] - x_goal[0]) < self.EPSILON and abs(x_new[1] - x_goal[1]) < self.EPSILON: # Check if goal is reached
 				self.is_goal_reached = True
+				self.goal_configuration = self.number_of_nodes
 
 			return x_new
 
@@ -200,27 +202,77 @@ class Graph():
 
 		return parent
 
+	def path_to_goal(self):
+		"""Collects the parents of each node.
+		
+		Given the x_goal node, it searches the next parent
+		continously until it reaches the x_init node.
+
+		Parameters
+		----------
+		None
+
+		Returns
+		-------
+		None
+		"""
+		if self.is_goal_reached:
+			self.path = []
+			self.path.append(self.goal_configuration)
+			new_configuration = self.parent[self.goal_configuration] # Parent of the x_goal node
+
+			while new_configuration != 0:
+				# Append the parent of the parent and update the configuration
+				self.path.append(new_configuration)
+				new_configuration = self.parent[new_configuration]
+
+			# Append the parent 0 (correspondant to the x_init node)
+			self.path.append(0)
+
+	def get_path_coordinates(self):
+		"""Collects the correspondant coordinates.
+
+		Given a list of the nodes it searches the correspondant
+		coordinates in the tree.
+
+		Parameters
+		----------
+		None
+
+		Returns
+		-------
+		None
+		"""
+		self.path_coordinates = []
+
+		for node in self.path:
+			x, y = self.tree[node]
+			self.path_coordinates.append((x, y))
+
+		return self.path_coordinates
+
 	def draw_random_node(self, map_):
 		"""Draws the x_rand node."""
-		pygame.draw.circle(surface=map_, color=self.GREEN, 
-			center=self.x_rand, radius=3)
+		pygame.draw.circle(surface=map_, color=self.GREEN, center=self.x_rand, radius=3)
 
 	def draw_new_node(self, map_, n):
 		"""Draws the x_near node."""
-		pygame.draw.circle(surface=map_, color=self.BROWN,
-			center=n, radius=2)
+		pygame.draw.circle(surface=map_, color=self.BROWN, center=n, radius=2)
 
 	def draw_initial_node(self, map_):
 		"""Draws the x_init node."""
-		pygame.draw.circle(surface=map_, color=self.BLUE, 
-			center=self.x_init, radius=4)
+		pygame.draw.circle(surface=map_, color=self.BLUE, center=self.x_init, radius=4)
 
 	def draw_goal_node(self, map_):
 		"""Draws the x_goal node."""
-		pygame.draw.circle(surface=map_, color=self.RED, 
-			center=self.x_goal, radius=4)
+		pygame.draw.circle(surface=map_, color=self.RED, center=self.x_goal, radius=4)
 
 	def draw_local_planner(self, p1, p2, map_):
 		"""Draws the local planner from node to node."""
-		pygame.draw.line(surface=map_, color=self.BLACK,
-			start_pos=p1, end_pos=p2)
+		pygame.draw.line(surface=map_, color=self.BLACK, start_pos=p1, end_pos=p2)
+
+	def draw_path_to_goal(self, map_):
+		"""Draws the path from the x_goal node to the x_init node."""
+		for i in range(len(self.path_coordinates)-1):
+			pygame.draw.line(surface=map_, color=self.RED, start_pos=self.path_coordinates[i],
+			 	end_pos=self.path_coordinates[i+1], width=4)
