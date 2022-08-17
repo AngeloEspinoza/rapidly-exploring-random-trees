@@ -39,7 +39,7 @@ class Graph():
 		self.TURQUOISE = (64, 224, 208)
 		self.FUCSIA = (255, 0, 255)
 
-	def is_free(self, point, obstacles, tree):
+	def is_free(self, point, obstacles):
 		"""Checks whether a node is colliding with an obstacle or not.
 
 		When dealing with obstacles it is necessary to check 
@@ -49,10 +49,8 @@ class Graph():
 		----------
 		point : tuple
 			Point to be checked.
-		obstacles : pygame.Rect
-			Rectangle obstacle.
-		tree : list
-			Tree containing all the coordinate nodes.
+		obstacles : list
+			Obstacle or obstacles list.
 
 		Returns
 		-------
@@ -60,12 +58,11 @@ class Graph():
 		"""
 		for obstacle in obstacles:
 			if obstacle.collidepoint(point):
-				tree.remove(point)
 				return False
 
 		return True
 
-	def generate_random_node(self):
+	def generate_random_node(self, obstacles):
 		"""Generates a random node on the screen.
 
 		The x and y coordinate is generated given an uniform
@@ -73,7 +70,8 @@ class Graph():
 
 		Parameters
 		----------
-		None
+		obstacles : list
+			Obstacle or obstacles list.
 
 		Returns
 		-------
@@ -81,6 +79,7 @@ class Graph():
 			Coordinates of the random node. 
 		"""
 		self.x_rand = random.uniform(0, self.WIDTH), random.uniform(0, self.HEIGHT)
+		# collision_free = self.is_free(point=self.x_rand, obstacles=obstacles)
 
 		return self.x_rand
 

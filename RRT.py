@@ -63,48 +63,56 @@ def main():
 			if event.type == pygame.QUIT:
 				run = False
 
-		x_rand = graph_.generate_random_node() # Random node 
-		x_near = graph_.nearest_neighbor(tree, x_rand) # Nearest neighbor to the random node
-		x_new = graph_.new_state(x_rand, x_near, x_goal) # New node
-		tree.append(x_new)
-
-		# Every n iterations bias the RRT
-		if iteration%10 == 0:
-			x_rand = x_goal
-
-		iteration += 1
-
-		# Draw points and lines to visualization
-		graph_.draw_initial_node(map_=environment_.map)
-		graph_.draw_goal_node(map_=environment_.map)
+		
 
 		if not is_simulation_finished:
-			collision_free = graph_.is_free(point=x_new, obstacles=obstacles, tree=tree) # Check collision
+			# Sample free space and check x_rand node collision
+			x_rand = graph_.generate_random_node(obstacles=obstacles) # Random node 
+			rand_collision_free = graph_.is_free(point=x_rand, obstacles=obstacles) 
 			
-			if collision_free:
-				# Append current node value and place it in the parent list 
-				values.append(node_value)
-				parent = graph_.generate_parents(values, parent)
+			if rand_collision_free:
+				x_near = graph_.nearest_neighbor(tree, x_rand) # Nearest neighbor to the random node
+				x_new = graph_.new_state(x_rand, x_near, x_goal) # New node
 
-				if args.show_random_nodes:
-					graph_.draw_random_node(map_=environment_.map)		
-				if args.show_new_nodes:
-					graph_.draw_new_node(map_=environment_.map, n=x_new)
+				# Every n iterations bias the RRT
+				if iteration%10 == 0:
+					x_rand = x_goal
 
-				graph_.draw_local_planner(p1=x_near, p2=x_new, map_=environment_.map)
-				graph_.number_of_nodes = len(tree)
-				node_value += 1 # Increment the value for the next randomly generated node
+				iteration += 1
 
-				if graph_.is_goal_reached:
-					graph_.draw_local_planner(p1=x_new, p2=x_goal, map_=environment_.map)
-					is_simulation_finished = True
-					graph_.parent = parent
-					graph_.tree = tree
-					graph_.path_to_goal()
-					graph_.get_path_coordinates()
-					graph_.draw_path_to_goal(map_=environment_.map)
+				# Draw points and lines for visualization
+				graph_.draw_initial_node(map_=environment_.map)
+				graph_.draw_goal_node(map_=environment_.map)
+				
+				# Check x_new node collision
+				new_collision_free = graph_.is_free(point=x_new, obstacles=obstacles) 
+				
+				if new_collision_free:
+					tree.append(x_new) # Append to the tree the x_new node
 
-				k += 1 
+					# Append current node value and place it in the parent list 
+					values.append(node_value)
+					parent = graph_.generate_parents(values, parent)
+
+					if args.show_random_nodes:
+						graph_.draw_random_node(map_=environment_.map)		
+					if args.show_new_nodes:
+						graph_.draw_new_node(map_=environment_.map, n=x_new)
+
+					graph_.draw_local_planner(p1=x_near, p2=x_new, map_=environment_.map)
+					graph_.number_of_nodes = len(tree)
+					node_value += 1 # Increment the value for the next randomly generated node
+
+					if graph_.is_goal_reached:
+						graph_.draw_local_planner(p1=x_new, p2=x_goal, map_=environment_.map)
+						is_simulation_finished = True
+						graph_.parent = parent
+						graph_.tree = tree
+						graph_.path_to_goal()
+						graph_.get_path_coordinates()
+						graph_.draw_path_to_goal(map_=environment_.map)
+
+					k += 1 
 		pygame.display.update()
 
 	pygame.quit()
