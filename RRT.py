@@ -54,7 +54,7 @@ def main():
 	k = 0
 	node_value = 0
 	iteration = 0
-	bias_percentage = 11 - args.bias_percentage//10
+	bias_percentage = 10 - args.bias_percentage//10 if args.bias_percentage != 100 else 1
 	
 	while run and k < MAX_NODES:
 		# Make sure the loop runs at 60 FPS
@@ -62,8 +62,6 @@ def main():
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				run = False
-
-		
 
 		if not is_simulation_finished:
 			# Sample free space and check x_rand node collision
@@ -75,7 +73,7 @@ def main():
 				x_new = graph_.new_state(x_rand, x_near, x_goal) # New node
 
 				# Every n iterations bias the RRT
-				if iteration%10 == 0:
+				if iteration%bias_percentage == 0:
 					x_rand = x_goal
 
 				iteration += 1
