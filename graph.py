@@ -275,3 +275,33 @@ class Graph():
 		for i in range(len(self.path_coordinates)-1):
 			pygame.draw.line(surface=map_, color=self.RED, start_pos=self.path_coordinates[i],
 			 	end_pos=self.path_coordinates[i+1], width=4)
+
+	def move_robot(self, position, map_):
+		"""Draws the robot moving."""
+		pygame.draw.circle(surface=map_, color=(0, 0, 255),
+			center=position, radius=4)
+
+	def draw_tree(self, nears, news, map_):
+		"""Draws the tree constantly. Used to display it in an infinite loop."""
+		for i in range(len(nears)):
+			self.draw_local_planner(p1=nears[i], p2=news[i+1], map_=map_)
+
+	def draw_trajectory(self, nears, news, environment_):
+		"""Draws the robot moving in the map."""
+		for i in range(len(self.path_coordinates)-1):
+			robot_position = self.path_coordinates[::-1][i]
+
+			# Draw inital and final robot configuration
+			self.draw_initial_node(map_=environment_.map)
+			self.draw_goal_node(map_=environment_.map)
+			environment_.draw_obstacles()
+
+			# Draw path to goal, and the robot movement
+			self.draw_path_to_goal(map_=environment_.map)		
+			self.move_robot(position=robot_position, map_=environment_.map)
+			self.draw_tree(nears=nears, news=news, map_=environment_.map)				
+
+			# Refresh the screen
+			pygame.display.update()
+			pygame.time.delay(50) # Wait 0.1 seconds 
+			environment_.map.fill(self.WHITE)

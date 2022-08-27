@@ -21,6 +21,10 @@ parser.add_argument('-snn', '--show_new_nodes', type=bool, action=argparse.Boole
 	metavar='', required=False, help='Show new nodes on screen')
 parser.add_argument('-bp', '--bias_percentage', type=int, metavar='', required=False, default=30,
 	help='Amount of bias the RRT from 1 to 100')
+parser.add_argument('-ptg', '--path_to_goal', type=bool, action=argparse.BooleanOptionalAction, 
+	metavar='', required=False, help='Draws a red line indicating the path to goal')
+parser.add_argument('-mr', '--move_robot', type=bool, action=argparse.BooleanOptionalAction, 
+	metavar='', required=False, help='Shows the movements of the robot from the start to the end')
 args = parser.parse_args()
 
 # Constants
@@ -56,6 +60,8 @@ def main():
 	iteration = 0
 	bias_percentage = 10 - args.bias_percentage//10 if args.bias_percentage != 100 else 1
 	
+	nears = [] # To store the generated x_near nodes 
+
 	while run and k < MAX_NODES:
 		# Make sure the loop runs at 60 FPS
 		clock.tick(environment_.FPS)  
@@ -63,11 +69,15 @@ def main():
 			if event.type == pygame.QUIT:
 				run = False
 
+		# Draw points and lines for visualization
+		graph_.draw_initial_node(map_=environment_.map)
+		graph_.draw_goal_node(map_=environment_.map)
+
 		if not is_simulation_finished:
 			# Sample free space and check x_rand node collision
 			x_rand = graph_.generate_random_node(obstacles=obstacles) # Random node 
 			rand_collision_free = graph_.is_free(point=x_rand, obstacles=obstacles) 
-			
+		
 			if rand_collision_free:
 				x_near = graph_.nearest_neighbor(tree, x_rand) # Nearest neighbor to the random node
 				x_new = graph_.new_state(x_rand, x_near, x_goal) # New node
@@ -78,15 +88,12 @@ def main():
 
 				iteration += 1
 
-				# Draw points and lines for visualization
-				graph_.draw_initial_node(map_=environment_.map)
-				graph_.draw_goal_node(map_=environment_.map)
-				
 				# Check x_new node collision
 				new_collision_free = graph_.is_free(point=x_new, obstacles=obstacles) 
 				
 				if new_collision_free:
 					tree.append(x_new) # Append to the tree the x_new node
+					nears.append(x_near) # Append nearest neighbor of x_new
 
 					# Append current node value and place it in the parent list 
 					values.append(node_value)
@@ -108,9 +115,15 @@ def main():
 						graph_.tree = tree
 						graph_.path_to_goal()
 						graph_.get_path_coordinates()
-						graph_.draw_path_to_goal(map_=environment_.map)
 
-					k += 1 
+						if args.path_to_goal:
+							graph_.draw_path_to_goal(map_=environment_.map)		
+
+					k += 1 # One more node sampled
+
+		if graph_.is_goal_reached and args.move_robot:
+			graph_.draw_trajectory(nears=nears, news=tree, environment_=environment_)
+
 		pygame.display.update()
 
 	pygame.quit()
