@@ -40,7 +40,7 @@ class Graph():
 		self.FUCSIA = (255, 0, 255)
 
 	def is_free(self, point, obstacles):
-		"""Checks whether a node is colliding with an obstacle or not.
+		"""Checks if a node is colliding with an obstacle.
 
 		When dealing with obstacles it is necessary to check 
 		for the collision with them from the generated node.
@@ -62,7 +62,7 @@ class Graph():
 
 		return True
 
-	def generate_random_node(self, obstacles):
+	def generate_random_node(self):
 		"""Generates a random node on the screen.
 
 		The x and y coordinate is generated given an uniform
@@ -79,7 +79,6 @@ class Graph():
 			Coordinates of the random node. 
 		"""
 		self.x_rand = random.uniform(0, self.WIDTH), random.uniform(0, self.HEIGHT)
-		# collision_free = self.is_free(point=self.x_rand, obstacles=obstacles)
 
 		return self.x_rand
 
@@ -278,8 +277,7 @@ class Graph():
 
 	def move_robot(self, position, map_):
 		"""Draws the robot moving."""
-		pygame.draw.circle(surface=map_, color=(0, 0, 255),
-			center=position, radius=4)
+		pygame.draw.circle(surface=map_, color=(0, 0, 255),	center=position, radius=4)
 
 	def draw_tree(self, nears, news, map_):
 		"""Draws the tree constantly. Used to display it in an infinite loop."""
@@ -303,5 +301,5 @@ class Graph():
 
 			# Refresh the screen
 			pygame.display.update()
-			pygame.time.delay(50) # Wait 0.1 seconds 
+			pygame.time.delay(20) # Wait 0.1 seconds 
 			environment_.map.fill(self.WHITE)

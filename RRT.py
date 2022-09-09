@@ -12,9 +12,9 @@ parser.add_argument('-n', '--nodes', type=int, metavar='', required=False,
 	help='Maximum number of nodes')
 parser.add_argument('-e', '--epsilon', type=float, metavar='', required=False, help='Step size')
 parser.add_argument('-init', '--x_init', nargs='+', type=int, metavar='', required=False,
-	help='Initial node position in X and Y respectively')
+	help='Initial node position in X and Y, respectively')
 parser.add_argument('-goal', '--x_goal', nargs='+', type=int, metavar='', required=False,
-	help='Goal node position in X and Y respectively')
+	help='Goal node position in X and Y, respectively')
 parser.add_argument('-srn', '--show_random_nodes', type=bool, action=argparse.BooleanOptionalAction,
 	metavar='', required=False, help='Show random nodes on screen')
 parser.add_argument('-snn', '--show_new_nodes', type=bool, action=argparse.BooleanOptionalAction,
@@ -26,6 +26,9 @@ parser.add_argument('-ptg', '--path_to_goal', type=bool, action=argparse.Boolean
 parser.add_argument('-mr', '--move_robot', type=bool, action=argparse.BooleanOptionalAction, 
 	metavar='', required=False, help='Shows the movements of the robot from the start to the end')
 args = parser.parse_args()
+
+# Initialization 
+pygame.init()
 
 # Constants
 MAP_DIMENSIONS = 640, 480
@@ -75,7 +78,7 @@ def main():
 
 		if not is_simulation_finished:
 			# Sample free space and check x_rand node collision
-			x_rand = graph_.generate_random_node(obstacles=obstacles) # Random node 
+			x_rand = graph_.generate_random_node() # Random node 
 			rand_collision_free = graph_.is_free(point=x_rand, obstacles=obstacles) 
 		
 			if rand_collision_free:
