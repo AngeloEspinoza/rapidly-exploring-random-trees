@@ -276,7 +276,7 @@ class Graph():
 			 	end_pos=self.path_coordinates[i+1], width=4)
 
 	def move_robot(self, position, map_):
-		"""Draws the robot moving."""
+		"""Draws the robot moving at the given position."""
 		pygame.draw.circle(surface=map_, color=(0, 0, 255),	center=position, radius=4)
 
 	def draw_tree(self, nears, news, map_):
@@ -284,22 +284,26 @@ class Graph():
 		for i in range(len(nears)):
 			self.draw_local_planner(p1=nears[i], p2=news[i+1], map_=map_)
 
-	def draw_trajectory(self, nears, news, environment_):
+	def draw_trajectory(self, nears, news, environment, obstacles, keep_tree):
 		"""Draws the robot moving in the map."""
 		for i in range(len(self.path_coordinates)-1):
 			robot_position = self.path_coordinates[::-1][i]
 
+			if obstacles != []:
+				environment.draw_obstacles()
+
 			# Draw inital and final robot configuration
-			self.draw_initial_node(map_=environment_.map)
-			self.draw_goal_node(map_=environment_.map)
-			environment_.draw_obstacles()
+			self.draw_initial_node(map_=environment.map)
+			self.draw_goal_node(map_=environment.map)
 
 			# Draw path to goal, and the robot movement
-			self.draw_path_to_goal(map_=environment_.map)		
-			self.move_robot(position=robot_position, map_=environment_.map)
-			self.draw_tree(nears=nears, news=news, map_=environment_.map)				
+			self.draw_path_to_goal(map_=environment.map)		
+			self.move_robot(position=robot_position, map_=environment.map)
+
+			if keep_tree:
+				self.draw_tree(nears=nears, news=news, map_=environment.map)				
 
 			# Refresh the screen
 			pygame.display.update()
 			pygame.time.delay(20) # Wait 0.1 seconds 
-			environment_.map.fill(self.WHITE)
+			environment.map.fill(self.WHITE)

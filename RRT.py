@@ -25,6 +25,8 @@ parser.add_argument('-ptg', '--path_to_goal', type=bool, action=argparse.Boolean
 	metavar='', required=False, help='Draws a red line indicating the path to goal')
 parser.add_argument('-mr', '--move_robot', type=bool, action=argparse.BooleanOptionalAction, 
 	metavar='', required=False, help='Shows the movements of the robot from the start to the end')
+parser.add_argument('-kt', '--keep_tree', type=bool, action=argparse.BooleanOptionalAction, 
+	metavar='', required=False, help='Keeps the tree while the robot is moving towards the goal')
 args = parser.parse_args()
 
 # Initialization 
@@ -43,8 +45,7 @@ x_goal = tuple(args.x_goal) if args.x_goal is not None else (540, 380) # Goal no
 
 # Instantiating the environment and the graph
 environment_ = environment.Environment(map_dimensions=MAP_DIMENSIONS)
-graph_ = graph.Graph(start=x_init, goal=x_goal, 
-		map_dimensions=MAP_DIMENSIONS, epsilon=EPSILON)
+graph_ = graph.Graph(start=x_init, goal=x_goal, map_dimensions=MAP_DIMENSIONS, epsilon=EPSILON)
 
 def main():
 	clock = pygame.time.Clock()
@@ -112,10 +113,10 @@ def main():
 					node_value += 1 # Increment the value for the next randomly generated node
 
 					if graph_.is_goal_reached:
-						graph_.draw_local_planner(p1=x_new, p2=x_goal, map_=environment_.map)
 						is_simulation_finished = True
 						graph_.parent = parent
 						graph_.tree = tree
+						graph_.draw_local_planner(p1=x_new, p2=x_goal, map_=environment_.map)
 						graph_.path_to_goal()
 						graph_.get_path_coordinates()
 
@@ -125,7 +126,8 @@ def main():
 					k += 1 # One more node sampled
 
 		if graph_.is_goal_reached and args.move_robot:
-			graph_.draw_trajectory(nears=nears, news=tree, environment_=environment_)
+			graph_.draw_trajectory(nears=nears, news=tree, environment=environment_,
+				obstacles=obstacles, keep_tree=args.keep_tree)
 
 		pygame.display.update()
 
